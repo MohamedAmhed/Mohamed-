@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>برنامج حضور وانصراف الموظفين</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header, footer {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 1em;
+            width: 100%;
+        }
+        header {
+            position: relative;
+            width: 100vw;
+            left: 50%;
+            right: 50%;
+            margin-left: -50vw;
+            margin-right: -50vw;
+        }
+        main {
+            padding: 1em;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        section {
+            background: white;
+            padding: 1em;
+            margin-bottom: 1.5em;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            display: none;
+            width: 100%;
+            max-width: 800px;
+        }
+        section#employeeRegistration {
+            background-color: #e3f2fd;
+        }
+        section#employeeManagement {
+            background-color: #fff3e0;
+        }
+        section#employeeCheckOut {
+            background-color: #e8f5e9;
+        }
+        section#registeredEmployees {
+            background-color: #fce4ec;
+        }
+        h2 {
+            color: #4CAF50;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 0.5em;
+        }
+        form {
+            display: grid;
+            gap: 1em;
+        }
+        @media (min-width: 600px) {
+            form {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5em;
+        }
+        input, select, button {
+            padding: 0.5em;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            grid-column: span 2;
+            width: auto;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-container, .bg-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1em;
+            margin-bottom: 1em;
+        }
+        .btn-container button, .bg-container button {
+            flex: 1 1 calc(50% - 1em);
+            max-width: 200px;
+        }
+        @media (min-width: 600px) {
+            .btn-container button, .bg-container button {
+                flex: 1 1 calc(25% - 1em);
+            }
+        }
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+        }
+        .dropdown-content button {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            text-align: left;
+            border: none;
+            background: none;
+            width: 100%;
+        }
+        .dropdown-content button:hover {
+            background-color: #f1f1f1;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>برنامج حضور وانصراف الموظفين</h1>
+    </header>
+
+    <main>
+        <div class="btn-container">
+            <button onclick="openSection('employeeRegistration')">تسجيل الموظفين الجدد</button>
+            <button onclick="openSection('employeeManagement')">تسجيل الحضور</button>
+            <button onclick="openSection('employeeCheckOut')">تسجيل الانصراف</button>
+            <button onclick="openSection('registeredEmployees')">عرض البيانات</button>
+            <button onclick="openSection('fileUpload')">تحميل البيانات</button>
+        </div>
+
+        <div class="dropdown">
+            <button>تغيير الخلفية</button>
+            <div class="dropdown-content">
+                <button onclick="changeBackground('light')">خلفية فاتحة</button>
+                <button onclick="changeBackground('dark')">خلفية داكنة</button>
+                <button onclick="changeBackground('blue')">خلفية زرقاء</button>
+                <button onclick="changeBackground('custom1')">خلفية مخصصة 1</button>
+                <button onclick="changeBackground('custom2')">خلفية مخصصة 2</button>
+            </div>
+        </div>
+
+        <section id="employeeRegistration">
+            <h2>تسجيل الموظفين الجدد</h2>
+            <form id="registerForm">
+                <div>
+                    <label for="registerEmployeeName">اسم الموظف:</label>
+                    <input type="text" id="registerEmployeeName" required>
+                </div>
+                <div>
+                    <label for="registerHourlyRate">سعر الساعة:</label>
+                    <input type="number" id="registerHourlyRate" step="0.01" required>
+                </div>
+                <div>
+                    <label for="editEmployeeName">تعديل بيانات الموظف (اسم الموظف):</label>
+                    <select id="editEmployeeName"></select>
+                </div>
+                <button type="submit">تسجيل</button>
+            </form>
+        </section>
+
+        <section id="employeeManagement">
+            <h2>تسجيل الحضور</h2>
+            <form id="checkInForm">
+                <div>
+                    <label for="checkInEmployeeName">اسم الموظف:</label>
+                    <select id="checkInEmployeeName" required></select>
+                </div>
+                <div>
+                    <label for="checkInDate">تاريخ:</label>
+                    <input type="date" id="checkInDate" required>
+                </div>
+                <div>
+                    <label for="checkInTime">وقت الحضور:</label>
+                    <input type="time" id="checkInTime" required>
+                </div>
+                <button type="submit">تسجيل الحضور</button>
+            </form>
+        </section>
+
+        <section id="employeeCheckOut">
+            <h2>تسجيل الانصراف</h2>
+            <form id="checkOutForm">
+                <div>
+                    <label for="checkOutEmployeeName">اسم الموظف:</label>
+                    <select id="checkOutEmployeeName" required></select>
+                </div>
+                <div>
+                    <label for="checkOutDate">تاريخ:</label>
+                    <input type="date" id="checkOutDate" required>
+                </div>
+                <div>
+                    <label for="checkOutTime">وقت الانصراف:</label>
+                    <input type="time" id="checkOutTime" required>
+                </div>
+                <div>
+                    <label for="deduction">الخصم:</label>
+                    <input type="number" id="deduction" step="0.01">
+                </div>
+                <button type="submit">تسجيل الانصراف</button>
+            </form>
+        </section>
+
+        <section id="registeredEmployees">
+            <h2>الموظفين المسجلين مع الحضور والانصراف</h2>
+            <table id="attendanceTable">
+                <thead>
+                    <tr>
+                        <th>اسم الموظف</th>
+                        <th>تاريخ</th>
+                        <th>وقت الحضور</th>
+                        <th>وقت الانصراف</th>
+                        <th>ساعات العمل</th>
+                        <th>الراتب اليومي</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <button onclick="downloadData()">تنزيل البيانات</button>
+        </section>
+
+        <section id="fileUpload">
+            <h2>تحميل البيانات</h2>
+            <form id="fileUploadForm">
+                <div>
+                    <label for="fileInput">اختر ملف JSON:</label>
+                    <input type="file" id="fileInput" accept=".json" required>
+                </div>
+                <button type="submit">تحميل</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 برنامج الحضور والانصراف</p>
+    </footer>
+
+    <script>
+        // JavaScript Variables and Data Structures
+        let employees = [];
+        let attendanceRecords = [];
+
+        // HTML Elements
+        const sections = document.querySelectorAll("section");
+        const registerForm = document.getElementById("registerForm");
+        const checkInForm = document.getElementById("checkInForm");
+        const checkOutForm = document.getElementById("checkOutForm");
+        const attendanceTableBody = document.querySelector("#attendanceTable tbody");
+        const fileUploadForm = document.getElementById("fileUploadForm");
+
+        // Functions to manage sections
+        function openSection(sectionId) {
+            sections.forEach(section => section.style.display = "none");
+            document.getElementById(sectionId).style.display = "block";
+        }
+
+        // Function to update employee selects
+        function updateEmployeeSelects() {
+            const checkInEmployeeName = document.getElementById("checkInEmployeeName");
+            const checkOutEmployeeName = document.getElementById("checkOutEmployeeName");
+            const editEmployeeName = document.getElementById("editEmployeeName");
+
+            checkInEmployeeName.innerHTML = "";
+            checkOutEmployeeName.innerHTML = "";
+            editEmployeeName.innerHTML = "";
+
+            employees.forEach(employee => {
+                const option = document.createElement("option");
+                option.value = employee.name;
+                option.textContent = employee.name;
+
+                checkInEmployeeName.appendChild(option);
+                checkOutEmployeeName.appendChild(option.cloneNode(true));
+                editEmployeeName.appendChild(option.cloneNode(true));
+            });
+        }
+
+        // Event Listeners
+        registerForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const name = document.getElementById("registerEmployeeName").value;
+            const hourlyRate = parseFloat(document.getElementById("registerHourlyRate").value);
+
+            // Check if employee already exists
+            const existingEmployee = employees.find(employee => employee.name === name);
+            if (existingEmployee) {
+                alert("الموظف مسجل بالفعل.");
+                return;
+            }
+
+            employees.push({ name, hourlyRate });
+            updateEmployeeSelects();
+            registerForm.reset();
+            alert("تم تسجيل الموظف بنجاح.");
+        });
+
+        checkInForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const name = document.getElementById("checkInEmployeeName").value;
+            const date = document.getElementById("checkInDate").value;
+            const time = document.getElementById("checkInTime").value;
+
+            // Check if check-in already exists for this date
+            const existingRecord = attendanceRecords.find(record => record.name === name && record.date === date);
+            if (existingRecord) {
+                alert("تم تسجيل الحضور لهذا اليوم بالفعل.");
+                return;
+            }
+
+            attendanceRecords.push({ name, date, checkIn: time });
+            alert("تم تسجيل الحضور بنجاح.");
+        });
+
+     checkOutForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const name = document.getElementById("checkOutEmployeeName").value;
+    const date = document.getElementById("checkOutDate").value;
+    const time = document.getElementById("checkOutTime").value;
+    const deduction = parseFloat(document.getElementById("deduction").value) || 0;
+
+    // Find the check-in record
+    const record = attendanceRecords.find(record => record.name === name && record.date === date);
+    if (!record || record.checkOut) {
+        alert("لم يتم تسجيل الحضور لهذا اليوم أو تم تسجيل الانصراف بالفعل.");
+        return;
+    }
+
+    const checkInDateTime = new Date(`${record.date}T${record.checkIn}`);
+    let checkOutDateTime = new Date(`${date}T${time}`);
+
+    // Check if check-out is on the next day
+    if (checkOutDateTime < checkInDateTime) {
+        // Check-out is on the next day
+        checkOutDateTime.setDate(checkOutDateTime.getDate() + 1);
+    }
+
+    // Calculate working hours and daily salary
+    const workingHours = (checkOutDateTime - checkInDateTime) / 36e5;
+    const employee = employees.find(emp => emp.name === name);
+    const dailySalary = workingHours * employee.hourlyRate - deduction;
+
+    record.checkOut = time;
+    record.workingHours = workingHours.toFixed(2);
+    record.dailySalary = dailySalary.toFixed(2);
+
+    renderAttendanceTable();
+    alert("تم تسجيل الانصراف بنجاح.");
+});
+
+        function renderAttendanceTable() {
+            attendanceTableBody.innerHTML = "";
+            attendanceRecords.forEach(record => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${record.name}</td>
+                    <td>${record.date}</td>
+                    <td>${record.checkIn || ""}</td>
+                    <td>${record.checkOut || ""}</td>
+                    <td>${record.workingHours || ""}</td>
+                    <td>${record.dailySalary || ""}</td>
+                `;
+                attendanceTableBody.appendChild(row);
+            });
+        }
+
+        function downloadData() {
+            const data = JSON.stringify({ employees, attendanceRecords });
+            const blob = new Blob([data], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "attendanceData.json";
+            a.click();
+            URL.revokeObjectURL(url);
+            resetData();
+            alert("تم تنزيل البيانات ومسح السجلات.");
+        }
+
+        function resetData() {
+            attendanceRecords = [];
+            renderAttendanceTable();
+        }
+
+        // Background change functionality
+        function changeBackground(type) {
+            let backgroundColor;
+            switch (type) {
+                case 'light':
+                    backgroundColor = '#f4f4f9';
+                    break;
+                case 'dark':
+                    backgroundColor = '#333';
+                    break;
+                case 'blue':
+                    backgroundColor = '#e3f2fd';
+                    break;
+                case 'custom1':
+                    backgroundColor = '#ffeb3b';
+                    break;
+                case 'custom2':
+                    backgroundColor = '#ff5722';
+                    break;
+                default:
+                    backgroundColor = '#f4f4f9';
+            }
+            document.body.style.backgroundColor = backgroundColor;
+        }
+
+        // File upload functionality
+        fileUploadForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const fileInput = document.getElementById("fileInput");
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("يرجى اختيار ملف.");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = JSON.parse(e.target.result);
+                employees = data.employees || [];
+                attendanceRecords = data.attendanceRecords || [];
+                updateEmployeeSelects();
+                renderAttendanceTable();
+                alert("تم تحميل البيانات بنجاح.");
+            };
+            reader.readAsText(file);
+        });
+
+        // Initialize default section
+        openSection('employeeRegistration');
+    </script>
+</body>
+</html>
