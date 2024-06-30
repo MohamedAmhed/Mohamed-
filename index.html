@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -167,7 +167,6 @@
             <button onclick="openSection('employeeManagement')">تسجيل الحضور</button>
             <button onclick="openSection('employeeCheckOut')">تسجيل الانصراف</button>
             <button onclick="openSection('registeredEmployees')">عرض البيانات</button>
-            <button onclick="openSection('fileUpload')">تحميل البيانات</button>
         </div>
 
         <div class="dropdown">
@@ -236,7 +235,7 @@
                 </div>
                 <div>
                     <label for="deduction">الخصم:</label>
-                    <input type="number" id="deduction" step="0.01">
+                    <input type="number" id="deduction" step="0.01" required>
                 </div>
                 <button type="submit">تسجيل الانصراف</button>
             </form>
@@ -253,223 +252,225 @@
                         <th>وقت الانصراف</th>
                         <th>ساعات العمل</th>
                         <th>الراتب اليومي</th>
+                        <th>الخصم</th>
+                        <th>الراتب الأسبوعي</th>
                     </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody>
+                    <!-- سيتم إضافة بيانات الحضور والانصراف هنا ديناميكيًا باستخدام JavaScript -->
+                </tbody>
             </table>
-            <button onclick="downloadData()">تنزيل البيانات</button>
-        </section>
-
-        <section id="fileUpload">
-            <h2>تحميل البيانات</h2>
-            <form id="fileUploadForm">
-                <div>
-                    <label for="fileInput">اختر ملف JSON:</label>
-                    <input type="file" id="fileInput" accept=".json" required>
-                </div>
-                <button type="submit">تحميل</button>
-            </form>
         </section>
     </main>
 
     <footer>
-        <p>&copy; 2024 برنامج الحضور والانصراف</p>
+        <p>© 2024 برنامج حضور وانصراف الموظفين | تطوير بواسطة أبو أحمد </p>
     </footer>
 
     <script>
-        // JavaScript Variables and Data Structures
-        let employees = [];
-        let attendanceRecords = [];
+        let employees = {};
 
-        // HTML Elements
-        const sections = document.querySelectorAll("section");
-        const registerForm = document.getElementById("registerForm");
-        const checkInForm = document.getElementById("checkInForm");
-        const checkOutForm = document.getElementById("checkOutForm");
-        const attendanceTableBody = document.querySelector("#attendanceTable tbody");
-        const fileUploadForm = document.getElementById("fileUploadForm");
-
-        // Functions to manage sections
+        // وظيفة لفتح القسم المحدد
         function openSection(sectionId) {
-            sections.forEach(section => section.style.display = "none");
-            document.getElementById(sectionId).style.display = "block";
-        }
-
-        // Function to update employee selects
-        function updateEmployeeSelects() {
-            const checkInEmployeeName = document.getElementById("checkInEmployeeName");
-            const checkOutEmployeeName = document.getElementById("checkOutEmployeeName");
-            const editEmployeeName = document.getElementById("editEmployeeName");
-
-            checkInEmployeeName.innerHTML = "";
-            checkOutEmployeeName.innerHTML = "";
-            editEmployeeName.innerHTML = "";
-
-            employees.forEach(employee => {
-                const option = document.createElement("option");
-                option.value = employee.name;
-                option.textContent = employee.name;
-
-                checkInEmployeeName.appendChild(option);
-                checkOutEmployeeName.appendChild(option.cloneNode(true));
-                editEmployeeName.appendChild(option.cloneNode(true));
+            document.querySelectorAll('section').forEach(section => {
+                section.style.display = 'none';
             });
+            document.getElementById(sectionId).style.display = 'block';
         }
 
-        // Event Listeners
-        registerForm.addEventListener("submit", (event) => {
-            event.preventDefault();
-            const name = document.getElementById("registerEmployeeName").value;
-            const hourlyRate = parseFloat(document.getElementById("registerHourlyRate").value);
+        // وظيفة لتغيير الخلفية
+        function changeBackground(color) {
+            document.body.style.backgroundImage = '';
+            if (color === 'light') {
+                document.body.style.backgroundColor = '#f4f4f9';
+                document.body.style.color = 'black';
+            } else if (color === 'dark') {
+                document.body.style.backgroundColor = '#333';
+                document.body.style.color = 'white';
+            } else if (color === 'blue') {
+                document.body.style.backgroundColor = '#87CEEB';
+                document.body.style.color = 'black';
+            } else if (color === 'custom1') {
+                document.body.style.backgroundImage = "url('path/to/your/custom1.jpg')";
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.color = 'white';
+            } else if (color === 'custom2') {
+                document.body.style.backgroundImage = "url('path/to/your/custom2.jpg')";
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.color = 'white';
+            }
+        }
 
-            // Check if employee already exists
-            const existingEmployee = employees.find(employee => employee.name === name);
-            if (existingEmployee) {
-                alert("الموظف مسجل بالفعل.");
-                return;
+        // تسجيل الموظفين الجدد
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            let registerEmployeeName = document.getElementById('registerEmployeeName').value;
+            let registerHourlyRate = parseFloat(document.getElementById('registerHourlyRate').value);
+            let editEmployeeName = document.getElementById('editEmployeeName').value;
+
+            if (editEmployeeName) {
+                if (employees[editEmployeeName]) {
+                    employees[editEmployeeName].hourlyRate = registerHourlyRate;
+                    alert(`تم تعديل بيانات ${editEmployeeName} بنجاح!`);
+                } else {
+                    alert(`الموظف ${editEmployeeName} غير موجود.`);
+                }
+            } else {
+                if (!employees[registerEmployeeName]) {
+                    employees[registerEmployeeName] = {
+                        hourlyRate: registerHourlyRate,
+                        weeklySalary: 0,
+                        weeklyWorkHours: 0,
+                        attendanceRecords: {}
+                    };
+
+                    let option1 = document.createElement('option');
+                    option1.value = registerEmployeeName;
+                    option1.textContent = registerEmployeeName;
+                    document.getElementById('checkInEmployeeName').appendChild(option1);
+
+                    let option2 = document.createElement('option');
+                    option2.value = registerEmployeeName;
+                    option2.textContent = registerEmployeeName;
+                    document.getElementById('checkOutEmployeeName').appendChild(option2);
+
+                    let option3 = document.createElement('option');
+                    option3.value = registerEmployeeName;
+                    option3.textContent = registerEmployeeName;
+                    document.getElementById('editEmployeeName').appendChild(option3);
+
+                    alert(`تم تسجيل ${registerEmployeeName} بنجاح!`);
+                } else {
+                    alert(`${registerEmployeeName} مسجل بالفعل.`);
+                }
             }
 
-            employees.push({ name, hourlyRate });
-            updateEmployeeSelects();
-            registerForm.reset();
-            alert("تم تسجيل الموظف بنجاح.");
+            document.getElementById('registerForm').reset();
         });
 
-        checkInForm.addEventListener("submit", (event) => {
-            event.preventDefault();
-            const name = document.getElementById("checkInEmployeeName").value;
-            const date = document.getElementById("checkInDate").value;
-            const time = document.getElementById("checkInTime").value;
+        // تسجيل الحضور
+        document.getElementById('checkInForm').addEventListener('submit', function(e) {
+            e.preventDefault();
 
-            // Check if check-in already exists for this date
-            const existingRecord = attendanceRecords.find(record => record.name === name && record.date === date);
-            if (existingRecord) {
-                alert("تم تسجيل الحضور لهذا اليوم بالفعل.");
-                return;
+            let employeeName = document.getElementById('checkInEmployeeName').value;
+            let date = document.getElementById('checkInDate').value;
+            let checkInTime = document.getElementById('checkInTime').value;
+
+            if (!employees[employeeName].attendanceRecords[date]) {
+                employees[employeeName].attendanceRecords[date] = {
+                    checkIn: checkInTime,
+                    checkOut: null,
+                    deduction: 0
+                };
+
+                // تحقق من عدد الأيام
+                if (Object.keys(employees[employeeName].attendanceRecords).length === 8) {
+                    saveData();
+                    clearTable();
+                }
+
+                alert(`تم تسجيل حضور ${employeeName} في ${date}.`);
+            } else {
+                alert(`تم تسجيل حضور ${employeeName} لهذا التاريخ بالفعل.`);
             }
 
-            attendanceRecords.push({ name, date, checkIn: time });
-            alert("تم تسجيل الحضور بنجاح.");
+            document.getElementById('checkInForm').reset();
         });
 
-     checkOutForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const name = document.getElementById("checkOutEmployeeName").value;
-    const date = document.getElementById("checkOutDate").value;
-    const time = document.getElementById("checkOutTime").value;
-    const deduction = parseFloat(document.getElementById("deduction").value) || 0;
+        // تسجيل الانصراف
+        document.getElementById('checkOutForm').addEventListener('submit', function(e) {
+            e.preventDefault();
 
-    // Find the check-in record
-    const record = attendanceRecords.find(record => record.name === name && record.date === date);
-    if (!record || record.checkOut) {
-        alert("لم يتم تسجيل الحضور لهذا اليوم أو تم تسجيل الانصراف بالفعل.");
-        return;
-    }
+            let employeeName = document.getElementById('checkOutEmployeeName').value;
+            let date = document.getElementById('checkOutDate').value;
+            let checkOutTime = document.getElementById('checkOutTime').value;
+            let deduction = parseFloat(document.getElementById('deduction').value) || 0;
 
-    const checkInDateTime = new Date(`${record.date}T${record.checkIn}`);
-    let checkOutDateTime = new Date(`${date}T${time}`);
+            let attendanceRecord = employees[employeeName].attendanceRecords[date];
 
-    // Check if check-out is on the next day
-    if (checkOutDateTime < checkInDateTime) {
-        // Check-out is on the next day
-        checkOutDateTime.setDate(checkOutDateTime.getDate() + 1);
-    }
+            if (attendanceRecord && !attendanceRecord.checkOut) {
+                attendanceRecord.checkOut = checkOutTime;
+                attendanceRecord.deduction = deduction;
 
-    // Calculate working hours and daily salary
-    const workingHours = (checkOutDateTime - checkInDateTime) / 36e5;
-    const employee = employees.find(emp => emp.name === name);
-    const dailySalary = workingHours * employee.hourlyRate - deduction;
+                let hourlyRate = employees[employeeName].hourlyRate;
 
-    record.checkOut = time;
-    record.workingHours = workingHours.toFixed(2);
-    record.dailySalary = dailySalary.toFixed(2);
+                // احسب ساعات العمل
+                let checkInTime = new Date(`1970-01-01T${attendanceRecord.checkIn}Z`);
+                let checkOutTimeDate = new Date(`1970-01-01T${checkOutTime}Z`);
 
-    renderAttendanceTable();
-    alert("تم تسجيل الانصراف بنجاح.");
-});
+                if (checkOutTimeDate <= checkInTime) {
+                    checkOutTimeDate.setDate(checkOutTimeDate.getDate() + 1);
+                }
 
-        function renderAttendanceTable() {
-            attendanceTableBody.innerHTML = "";
-            attendanceRecords.forEach(record => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${record.name}</td>
-                    <td>${record.date}</td>
-                    <td>${record.checkIn || ""}</td>
-                    <td>${record.checkOut || ""}</td>
-                    <td>${record.workingHours || ""}</td>
-                    <td>${record.dailySalary || ""}</td>
-                `;
-                attendanceTableBody.appendChild(row);
-            });
-        }
+                let workHours = (checkOutTimeDate - checkInTime) / (1000 * 60 * 60); // تحويل من ميلي ثانية إلى ساعات
 
-        function downloadData() {
-            const data = JSON.stringify({ employees, attendanceRecords });
-            const blob = new Blob([data], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "attendanceData.json";
-            a.click();
-            URL.revokeObjectURL(url);
-            resetData();
-            alert("تم تنزيل البيانات ومسح السجلات.");
-        }
+                // احسب الراتب اليومي
+                let dailySalary = (workHours * hourlyRate) - deduction;
 
-        function resetData() {
-            attendanceRecords = [];
-            renderAttendanceTable();
-        }
+                // تحديث إجمالي ساعات العمل الأسبوعية والراتب الأسبوعي
+                employees[employeeName].weeklyWorkHours += workHours;
+                employees[employeeName].weeklySalary += dailySalary;
 
-        // Background change functionality
-        function changeBackground(type) {
-            let backgroundColor;
-            switch (type) {
-                case 'light':
-                    backgroundColor = '#f4f4f9';
-                    break;
-                case 'dark':
-                    backgroundColor = '#333';
-                    break;
-                case 'blue':
-                    backgroundColor = '#e3f2fd';
-                    break;
-                case 'custom1':
-                    backgroundColor = '#ffeb3b';
-                    break;
-                case 'custom2':
-                    backgroundColor = '#ff5722';
-                    break;
-                default:
-                    backgroundColor = '#f4f4f9';
+                // احسب ساعات البونص بناءً على إجمالي ساعات العمل الأسبوعية
+                let bonusHours = 0;
+                if (employees[employeeName].weeklyWorkHours >= 60 && employees[employeeName].weeklyWorkHours < 72) {
+                    bonusHours = 10;
+                } else if (employees[employeeName].weeklyWorkHours >= 72 && employees[employeeName].weeklyWorkHours < 84) {
+                    bonusHours = 12;
+                } else if (employees[employeeName].weeklyWorkHours >= 84 && employees[employeeName].weeklyWorkHours < 96) {
+                    bonusHours = 14;
+                } else if (employees[employeeName].weeklyWorkHours >= 96) {
+                    bonusHours = 16;
+                }
+
+                // إجمالي الراتب الأسبوعي مع البونص
+                let totalWeeklySalary = employees[employeeName].weeklySalary + (bonusHours * hourlyRate);
+
+                // تحديث الجدول
+                let table = document.getElementById('attendanceTable').getElementsByTagName('tbody')[0];
+                let newRow = table.insertRow();
+
+                newRow.insertCell(0).appendChild(document.createTextNode(employeeName));
+                newRow.insertCell(1).appendChild(document.createTextNode(date));
+                newRow.insertCell(2).appendChild(document.createTextNode(attendanceRecord.checkIn));
+                newRow.insertCell(3).appendChild(document.createTextNode(checkOutTime));
+                newRow.insertCell(4).appendChild(document.createTextNode(workHours.toFixed(2)));
+                newRow.insertCell(5).appendChild(document.createTextNode(dailySalary.toFixed(2)));
+                newRow.insertCell(6).appendChild(document.createTextNode(deduction.toFixed(2)));
+                newRow.insertCell(7).appendChild(document.createTextNode(totalWeeklySalary.toFixed(2)));
+
+                alert(`تم تسجيل انصراف ${employeeName} في ${date}.`);
+            } else {
+                alert(`لم يتم تسجيل حضور ${employeeName} لهذا التاريخ أو تم تسجيل الانصراف بالفعل.`);
             }
-            document.body.style.backgroundColor = backgroundColor;
-        }
 
-        // File upload functionality
-        fileUploadForm.addEventListener("submit", (event) => {
-            event.preventDefault();
-            const fileInput = document.getElementById("fileInput");
-            const file = fileInput.files[0];
-            if (!file) {
-                alert("يرجى اختيار ملف.");
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const data = JSON.parse(e.target.result);
-                employees = data.employees || [];
-                attendanceRecords = data.attendanceRecords || [];
-                updateEmployeeSelects();
-                renderAttendanceTable();
-                alert("تم تحميل البيانات بنجاح.");
-            };
-            reader.readAsText(file);
+            document.getElementById('checkOutForm').reset();
         });
 
-        // Initialize default section
-        openSection('employeeRegistration');
+        // مسح الجدول وإعادة تعيين البيانات
+        function clearTable() {
+            let table = document.getElementById('attendanceTable').getElementsByTagName('tbody')[0];
+            table.innerHTML = ''; // مسح جميع الصفوف في الجدول
+
+            // إعادة تعيين الرواتب الأسبوعية وساعات العمل
+            for (let employee in employees) {
+                employees[employee].weeklySalary = 0;
+                employees[employee].weeklyWorkHours = 0;
+                employees[employee].attendanceRecords = {}; // إعادة تعيين سجلات الحضور
+            }
+        }
+
+        // حفظ البيانات إلى ملف JSON
+        function saveData() {
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(employees));
+            let downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "attendance_data.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
     </script>
 </body>
 </html>
