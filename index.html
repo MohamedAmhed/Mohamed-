@@ -14,6 +14,7 @@
             flex-direction: column;
             min-height: 100vh;
         }
+
         header, footer {
             background-color: #4CAF50;
             color: white;
@@ -21,6 +22,7 @@
             padding: 1em;
             width: 100%;
         }
+
         header {
             position: relative;
             width: 100vw;
@@ -29,6 +31,7 @@
             margin-left: -50vw;
             margin-right: -50vw;
         }
+
         main {
             padding: 1em;
             flex: 1;
@@ -36,6 +39,7 @@
             flex-direction: column;
             align-items: center;
         }
+
         section {
             background: white;
             padding: 1em;
@@ -46,36 +50,45 @@
             width: 100%;
             max-width: 800px;
         }
+
         section#employeeRegistration {
             background-color: #e3f2fd;
         }
+
         section#employeeManagement {
             background-color: #fff3e0;
         }
+
         section#employeeCheckOut {
             background-color: #e8f5e9;
         }
+
         section#registeredEmployees {
             background-color: #fce4ec;
         }
+
         h2 {
             color: #4CAF50;
             border-bottom: 2px solid #4CAF50;
             padding-bottom: 0.5em;
         }
+
         form {
             display: grid;
             gap: 1em;
         }
+
         @media (min-width: 600px) {
             form {
                 grid-template-columns: 1fr 1fr;
             }
         }
+
         label {
             display: block;
             margin-bottom: 0.5em;
         }
+
         input, select, button {
             padding: 0.5em;
             font-size: 1em;
@@ -83,6 +96,7 @@
             border-radius: 4px;
             width: 100%;
         }
+
         button {
             background-color: #4CAF50;
             color: white;
@@ -91,25 +105,31 @@
             grid-column: span 2;
             width: auto;
         }
+
         button:hover {
             background-color: #45a049;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 1em;
         }
+
         table, th, td {
             border: 1px solid #ddd;
         }
+
         th, td {
             padding: 8px;
             text-align: left;
         }
+
         th {
             background-color: #4CAF50;
             color: white;
         }
+
         .btn-container, .bg-container {
             display: flex;
             flex-wrap: wrap;
@@ -117,19 +137,23 @@
             gap: 1em;
             margin-bottom: 1em;
         }
+
         .btn-container button, .bg-container button {
             flex: 1 1 calc(50% - 1em);
             max-width: 200px;
         }
+
         @media (min-width: 600px) {
             .btn-container button, .bg-container button {
                 flex: 1 1 calc(25% - 1em);
             }
         }
+
         .dropdown {
             position: relative;
             display: inline-block;
         }
+
         .dropdown-content {
             display: none;
             position: absolute;
@@ -138,6 +162,7 @@
             box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
             z-index: 1;
         }
+
         .dropdown-content button {
             color: black;
             padding: 12px 16px;
@@ -148,9 +173,11 @@
             background: none;
             width: 100%;
         }
+
         .dropdown-content button:hover {
             background-color: #f1f1f1;
         }
+
         .dropdown:hover .dropdown-content {
             display: block;
         }
@@ -290,14 +317,76 @@
             } else if (color === 'blue') {
                 document.body.style.backgroundColor = '#87CEEB';
                 document.body.style.color = 'black';
-            } else if (color === 'custom1') {
-                document.body.style.backgroundImage = "url('path/to/your/custom1.jpg')";
+            } else if (color === 'custom1' || color === 'custom2') {
+                document.body.style.backgroundImage = `url('path/to/your/${color}.jpg')`;
                 document.body.style.backgroundSize = 'cover';
                 document.body.style.color = 'white';
-            } else if (color === 'custom2') {
-                document.body.style.backgroundImage = "url('path/to/your/custom2.jpg')";
-                document.body.style.backgroundSize = 'cover';
-                document.body.style.color = 'white';
+            }
+        }
+
+        // تحميل البيانات من LocalStorage
+        function loadData() {
+            const data = localStorage.getItem('employees');
+            if (data) {
+                employees = JSON.parse(data);
+
+                // تحديث القوائم المنسدلة
+                Object.keys(employees).forEach(employeeName => {
+                    let option1 = document.createElement('option');
+                    option1.value = employeeName;
+                    option1.textContent = employeeName;
+                    document.getElementById('checkInEmployeeName').appendChild(option1);
+
+                    let option2 = document.createElement('option');
+                    option2.value = employeeName;
+                    option2.textContent = employeeName;
+                    document.getElementById('checkOutEmployeeName').appendChild(option2);
+
+                    let option3 = document.createElement('option');
+                    option3.value = employeeName;
+                    option3.textContent = employeeName;
+                    document.getElementById('editEmployeeName').appendChild(option3);
+                });
+
+                // تحديث جدول الحضور والانصراف
+                const table = document.getElementById('attendanceTable').getElementsByTagName('tbody')[0];
+                Object.keys(employees).forEach(employeeName => {
+                    const employee = employees[employeeName];
+                    Object.keys(employee.attendanceRecords).forEach(date => {
+                        const record = employee.attendanceRecords[date];
+                        if (record.checkOut) {
+                            let newRow = table.insertRow();
+                            let hourlyRate = employee.hourlyRate;
+                            let checkInTime = new Date(`1970-01-01T${record.checkIn}Z`);
+                            let checkOutTimeDate = new Date(`1970-01-02T${record.checkOut}Z`);
+                            if (checkOutTimeDate <= checkInTime) {
+                                checkOutTimeDate.setDate(checkOutTimeDate.getDate() + 1);
+                            }
+                            let workHours = (checkOutTimeDate - checkInTime) / (1000 * 60 * 60);
+                            let dailySalary = (workHours * hourlyRate) - record.deduction;
+                            let bonusHours = 0;
+                            if (employee.weeklyWorkHours >= 60 && employee.weeklyWorkHours < 72) {
+                                bonusHours = 10;
+                            } else if (employee.weeklyWorkHours >= 72 && employee.weeklyWorkHours < 84) {
+                                bonusHours = 12;
+                            } else if (employee.weeklyWorkHours >= 84 && employee.weeklyWorkHours < 96) {
+                                bonusHours = 14;
+                            } else if (employee.weeklyWorkHours >= 96) {
+                                bonusHours = 16;
+                            }
+                            let totalWeeklySalary = employee.weeklySalary + (bonusHours * hourlyRate);
+
+                            newRow.insertCell(0).appendChild(document.createTextNode(employeeName));
+                            newRow.insertCell(1).appendChild(document.createTextNode(date));
+                            newRow.insertCell(2).appendChild(document.createTextNode(record.checkIn));
+                            newRow.insertCell(3).appendChild(document.createTextNode(record.checkOut));
+                            newRow.insertCell(4).appendChild(document.createTextNode(workHours.toFixed(2)));
+                            newRow.insertCell(5).appendChild(document.createTextNode(dailySalary.toFixed(2)));
+                            newRow.insertCell(6).appendChild(document.createTextNode(record.deduction.toFixed(2)));
+                            newRow.insertCell(7).appendChild(document.createTextNode(totalWeeklySalary.toFixed(2)));
+                        }
+                    });
+                });
             }
         }
 
@@ -346,6 +435,7 @@
                 }
             }
 
+            saveData();
             document.getElementById('registerForm').reset();
         });
 
@@ -375,6 +465,7 @@
                 alert(`تم تسجيل حضور ${employeeName} لهذا التاريخ بالفعل.`);
             }
 
+            saveData();
             document.getElementById('checkInForm').reset();
         });
 
@@ -397,7 +488,7 @@
 
                 // احسب ساعات العمل
                 let checkInTime = new Date(`1970-01-01T${attendanceRecord.checkIn}Z`);
-                let checkOutTimeDate = new Date(`1970-01-01T${checkOutTime}Z`);
+                let checkOutTimeDate = new Date(`1970-01-02T${checkOutTime}Z`); // تعديل لتسجيل وقت الانصراف بعد منتصف الليل
 
                 if (checkOutTimeDate <= checkInTime) {
                     checkOutTimeDate.setDate(checkOutTimeDate.getDate() + 1);
@@ -445,6 +536,7 @@
                 alert(`لم يتم تسجيل حضور ${employeeName} لهذا التاريخ أو تم تسجيل الانصراف بالفعل.`);
             }
 
+            saveData();
             document.getElementById('checkOutForm').reset();
         });
 
@@ -461,15 +553,14 @@
             }
         }
 
-        // حفظ البيانات إلى ملف JSON
+        // حفظ البيانات إلى LocalStorage
         function saveData() {
-            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(employees));
-            let downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "attendance_data.json");
-            document.body.appendChild(downloadAnchorNode);
-            downloadAnchorNode.click();
-            downloadAnchorNode.remove();
+            localStorage.setItem('employees', JSON.stringify(employees));
+        }
+
+        // تحميل البيانات عند فتح الصفحة
+        window.onload = function() {
+            loadData();
         }
     </script>
 </body>
