@@ -387,6 +387,8 @@
                         }
                     });
                 });
+            } else {
+                console.log("No data found in LocalStorage");
             }
         }
 
@@ -556,6 +558,7 @@
         // حفظ البيانات إلى LocalStorage
         function saveData() {
             localStorage.setItem('employees', JSON.stringify(employees));
+            console.log("Data saved to LocalStorage");
         }
 
         // تحميل البيانات عند فتح الصفحة
